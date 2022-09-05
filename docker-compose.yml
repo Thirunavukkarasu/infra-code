@@ -1,0 +1,77 @@
+version: "3.9"
+services:
+  mysql:
+    image: mysql:5.7
+    platform : linux/amd64
+    ports:
+      - 3306:3306
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=mysql
+    networks:
+      - stack
+
+  mongodb:
+    image: mongo:4.2
+    ports:
+        - 27017:27017    
+    restart: unless-stopped
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=mongodb
+      - MONGO_INITDB_DATABASE=nucleus
+    networks:
+      - stack
+
+  kafka:
+    image: bitnami/kafka:latest
+    ports:
+      - 9092:9092
+    restart: unless-stopped
+    environment:
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_LISTENERS=PLAINTEXT://kafka:9092
+      - KAFKA_CREATE_TOPICS="migration_workflow:10:1,workflow:10:1,ohs:5:1,userActivity:5:1,allocation-request-queue:5:1,user-activity-intervention:5:1,user-activity-voEvent:5:1,user-activity-feature:5:1,user-activity-session:5:1,user-activity-recommendation:5:1,PROVISIONING_SERVICE_STATUS:5:1,PROVISIONING_SERVICE:5:1,vo-created:3:1,userGeoLastLocation:3:1,userGeoLocation:5:1,userGeoLastLocationUpdate:10:1,push-task-polling-trigger:10:1,push-task-processed:10:1,push-user-polling-trigger:10:1,push-user-processed:5:1,PUSH_FAILURE:5:1,activity-auto-close:5:1,work_calendar_sync:5:1,action:5:1,location-events:5:1,reconcile_calendar:20:1,disposition-calendar-fail:5:1,user_external_event_sync:5:1,GenericMongoExtractor:5:1,Emailer:5:1,S3Uploader:5:1,AzureUploader:5:1,sfdcmirror:5:1,sfdcconfigtranslator:5:1,GenericOffloader:5:1,sfdcconfigpromoter:5:1,sfdcmapper:5:1,sfdcetmetadata:5:1,OssUploader:5:1,fetcher:5:1,validator:5:1,chunker:5:1,ingestor:5:1,coalesce:5:1,geocoding:5:1,metrics-batch:5:1,user-activity-batch:5:1,user-activity-billing:10:1,EXPORT_FILES_TO_SFTP:5:1,EXPORT_FILES_TO_SFTP_IFL:5:1,EXPORT_FILES_TO_SFTP_YES:5:1,PROCESS_FILES_FROM_SFTP_YES:5:1,EXPORT_FILES_TO_SFTP_TEAMSELECT:5:1,PROCESS_FILES_FROM_SFTP_TEAMSELECT:5:1,ISAC_PROCESS:4:1,lms-jobs:5:1,intelliJobs:5:1,user-management:5:1,user-management-job-retry:5:1,PROCESS_BUSINESS_METRICS_FROM_SFTP_INDIABULL:5:1,EXPORT_FILES_TO_SFTP_DUPONT:5:1,MAHINDRA_USER_IMPORTER_SFTP:5:1,PROCESS_FILES_FROM_FEC_SFTP:1:1,EXPORT_UPLOAD_TRAILS_FILES_TO_FEC_SFTP:1:1,DATA_PURGE:5:1,allocated-queue:2:1,allocation-request-queue:2:1,UNALLOCATED_LEAD:2:1"
+    depends_on:
+      - zookeeper
+    networks:
+      - stack
+
+  zookeeper:
+    image: bitnami/zookeeper:latest
+    ports:
+      - 2181:2181
+    restart: unless-stopped
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+    networks:
+      - stack
+
+  elasticsearch:
+    image: elasticsearch:7.17.5
+    ports:
+      - 9200:9200
+      - 9300:9300
+    restart: unless-stopped
+    environment:
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+    networks:
+      - stack
+
+volumes:
+  mysql_data:
+    driver: local
+  mongo_data:
+    driver: local
+  zookeeper_data:
+    driver: local
+  es_data:
+    driver: local
+
+networks:
+  stack:
+    driver: "bridge"
+
+
